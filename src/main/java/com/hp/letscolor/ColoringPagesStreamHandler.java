@@ -8,6 +8,7 @@ import com.hp.letscolor.handler.ColoringPagesIntentHandler;
 import com.hp.letscolor.handler.ConnectionsResponseIntentHandler;
 import com.hp.letscolor.handler.FallbackIntentHandler;
 import com.hp.letscolor.handler.LaunchIntentHandler;
+import com.hp.letscolor.handler.NoIntentHandler;
 import com.hp.letscolor.handler.YesIntentHandler;
 
 
@@ -19,6 +20,7 @@ public class ColoringPagesStreamHandler extends SkillStreamHandler {
                         new LaunchIntentHandler(),
                         new ColoringPagesIntentHandler(),
                         new YesIntentHandler(),
+                        new NoIntentHandler(),
                         new ConnectionsResponseIntentHandler(),
                         new CancelAndStopIntent(),
                         new FallbackIntentHandler())

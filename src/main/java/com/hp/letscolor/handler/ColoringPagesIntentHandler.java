@@ -23,6 +23,7 @@ import java.util.Optional;
 
 public class ColoringPagesIntentHandler implements RequestHandler {
 
+    public static final String PROVIDER_ID = "PROVIDER_ID";
     private static Logger logger = LogManager.getLogger(ColoringPagesIntentHandler.class);
 
     static final String SHOULD_PICK_CATEGORY = "should_pick_category";
@@ -42,19 +43,25 @@ public class ColoringPagesIntentHandler implements RequestHandler {
         Intent intent = intentRequest.getIntent();
         Locale locale = Locale.forLanguageTag(intentRequest.getLocale());
         Map<String, Slot> slots = intent.getSlots();
-        Slot coloringPageType = slots.get(COLORING_PAGE_TYPE);
 
-        if (coloringPageType != null && coloringPageType.getResolutions() != null
-                && coloringPageType.getResolutions().toString().contains("ER_SUCCESS_MATCH")) {
+        Map<String, Object> sessionAttributes = handlerInput.getAttributesManager().getSessionAttributes();
+        Boolean shouldChooseCategory = (Boolean) sessionAttributes.get(SHOULD_PICK_CATEGORY);
+        if (shouldChooseCategory == null || !shouldChooseCategory) {
+            Slot coloringPageType = slots.get(COLORING_PAGE_TYPE);
 
-            String coloringPageValue = coloringPageType.getValue();
-            ColoringPagesResource resource = ColoringPagesResource.valueOf(coloringPageValue);
-            String url = UrlUtils.pickUrl(resource.urls());
-            String name = UrlUtils.getNameFromUrl(url);
+            if (coloringPageType != null && coloringPageType.getResolutions() != null
+                    && coloringPageType.getResolutions().toString().contains("ER_SUCCESS_MATCH")) {
 
-            return handlerInput.getResponseBuilder()
-                    .addDirective(hpPrinterDirective(name, url, resource, locale))
-                    .build();
+                String coloringPageId = getSlotId(coloringPageType);
+
+                ColoringPagesResource resource = ColoringPagesResource.valueOf(coloringPageId);
+                String url = UrlUtils.pickUrl(resource.urls());
+                String name = UrlUtils.getNameFromUrl(url);
+
+                return handlerInput.getResponseBuilder()
+                        .addDirective(hpPrinterDirective(name, url, resource, locale))
+                        .build();
+            }
         }
 
         handlerInput.getAttributesManager().setSessionAttributes(Collections.singletonMap(SHOULD_PICK_CATEGORY, true));
@@ -66,6 +73,16 @@ public class ColoringPagesIntentHandler implements RequestHandler {
                 .withReprompt(speechTextRepromt)
                 .withShouldEndSession(false)
                 .build();
+    }
+
+    private String getSlotId(Slot slot) {
+        return slot.getResolutions()
+                            .getResolutionsPerAuthority()
+                            .get(0)
+                            .getValues()
+                            .get(0)
+                            .getValue()
+                            .getId();
     }
 
     static SendRequestDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
@@ -81,19 +98,22 @@ public class ColoringPagesIntentHandler implements RequestHandler {
 
     private static Map<String, Object> generatePayload(String extension, String name, String url,
                                                        ColoringPagesResource resource, Locale locale) {
-        Map<String, Object> context = new HashMap<>();
-        context.put("providerId", "amzn1.ask.skill.78e1ccc3-0a46-475c-b069-ea6f660ff65c");
-
-        Map<String, Object> payload = new HashMap<>();
         String requestType = getRequestType(extension);
+        Map<String, Object> payload = new HashMap<>();
         payload.put("@type", requestType);
         payload.put("@version", "1");
         payload.put("title", name);
         payload.put("description", String.format(I18nResource.getString("category_of", locale), resource.name()));
         payload.put("url", url);
-        payload.put("context", context);
         if (requestType.equals("PrintImageRequest")) {
             payload.put("imageType", extension.toUpperCase());
+        }
+        String providerId = System.getenv(PROVIDER_ID);
+
+        if (providerId != null) {
+            Map<String, Object> context = new HashMap<>();
+            context.put("providerId", providerId);
+            payload.put("context", context);
         }
         return payload;
     }
