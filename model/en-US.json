@@ -1,0 +1,112 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "lets color",
+      "intents": [
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "ColoringPagesIntent",
+          "slots": [
+            {
+              "name": "COLORING_PAGE_TYPE",
+              "type": "COLORING_PAGE_TYPE"
+            }
+          ],
+          "samples": [
+            "print {COLORING_PAGE_TYPE} coloring page",
+            "print coloring pages from category {COLORING_PAGE_TYPE}",
+            "coloring page of {COLORING_PAGE_TYPE}",
+            "print coloring pages {COLORING_PAGE_TYPE}",
+            "print a {COLORING_PAGE_TYPE} coloring page",
+            "I want to color",
+            "I want a coloring page",
+            "print me coloring pages",
+            "print me a coloring page",
+            "get me a coloring page",
+            "coloring page",
+            "coloring pages",
+            "print coloring pages",
+            "print a coloring page"
+          ]
+        },
+        {
+          "name": "AMAZON.YesIntent",
+          "samples": []
+        }
+      ],
+      "types": [
+        {
+          "name": "COLORING_PAGE_TYPE",
+          "values": [
+            {
+              "id": "THINGS",
+              "name": {
+                "value": "THINGS",
+                "synonyms": [
+                  "Stuff",
+                  "Objects"
+                ]
+              }
+            },
+            {
+              "id": "NATURE",
+              "name": {
+                "value": "NATURE"
+              }
+            },
+            {
+              "id": "ALPHABET",
+              "name": {
+                "value": "ALPHABET",
+                "synonyms": [
+                  "letters",
+                  "letter"
+                ]
+              }
+            },
+            {
+              "id": "FRUITS",
+              "name": {
+                "value": "FRUITS",
+                "synonyms": [
+                  "fruit"
+                ]
+              }
+            },
+            {
+              "id": "ANIMALS",
+              "name": {
+                "value": "ANIMALS",
+                "synonyms": [
+                  "animal",
+                  "with animals",
+                  "different animals",
+                  "domesticated animals"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
