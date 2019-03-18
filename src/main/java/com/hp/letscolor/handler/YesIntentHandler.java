@@ -6,7 +6,6 @@ import com.amazon.ask.model.Response;
 import com.amazon.ask.request.Predicates;
 import com.hp.letscolor.resource.ColoringPagesResource;
 import com.hp.letscolor.resource.I18nResource;
-import com.hp.letscolor.util.UrlUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,18 +39,6 @@ public class YesIntentHandler implements RequestHandler {
         }
 
         ColoringPagesResource resource = ColoringPagesResource.pickResource();
-        String url = UrlUtils.pickUrl(resource.urls());
-        String name = UrlUtils.getNameFromUrl(url);
-        String resourceName = resource.capitalizeName();
-
-        String speechText = String.format(I18nResource.getString("sent_message", locale), resourceName);
-        String cardTitle = I18nResource.getString("title_card", locale);
-        String cardText = I18nResource.getString("sent_message_card", locale);
-
-        return handlerInput.getResponseBuilder()
-                .withSpeech(speechText)
-                .withSimpleCard(cardTitle, cardText)
-                .addDirective(ColoringPagesIntentHandler.hpPrinterDirective(name, url, resource, locale))
-                .build();
+        return ColoringPagesIntentHandler.sendToHPPrinter(handlerInput.getResponseBuilder(), locale, resource);
     }
 }

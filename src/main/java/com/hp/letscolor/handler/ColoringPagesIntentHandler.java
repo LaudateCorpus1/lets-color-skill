@@ -9,6 +9,7 @@ import com.amazon.ask.model.Response;
 import com.amazon.ask.model.Slot;
 import com.amazon.ask.model.interfaces.connections.SendRequestDirective;
 import com.amazon.ask.request.Predicates;
+import com.amazon.ask.response.ResponseBuilder;
 import com.hp.letscolor.resource.ColoringPagesResource;
 import com.hp.letscolor.resource.I18nResource;
 import com.hp.letscolor.util.UrlUtils;
@@ -51,19 +52,20 @@ public class ColoringPagesIntentHandler implements RequestHandler {
 
             if (coloringPageType != null && coloringPageType.getResolutions() != null
                     && coloringPageType.getResolutions().toString().contains("ER_SUCCESS_MATCH")) {
-
-                String coloringPageId = getSlotId(coloringPageType);
-
-                ColoringPagesResource resource = ColoringPagesResource.valueOf(coloringPageId);
-                String url = UrlUtils.pickUrl(resource.urls());
-                String name = UrlUtils.getNameFromUrl(url);
-
-                return handlerInput.getResponseBuilder()
-                        .addDirective(hpPrinterDirective(name, url, resource, locale))
-                        .build();
+                return handleCategory(handlerInput, locale, coloringPageType);
             }
         }
+        return askToSortCategory(handlerInput, locale);
+    }
 
+    private static Optional<Response> handleCategory(HandlerInput handlerInput, Locale locale, Slot coloringPageType) {
+        String coloringPageId = getSlotId(coloringPageType);
+        ColoringPagesResource resource = ColoringPagesResource.valueOf(coloringPageId);
+        return sendToHPPrinter(handlerInput.getResponseBuilder(), locale, resource);
+    }
+
+
+    private Optional<Response> askToSortCategory(HandlerInput handlerInput, Locale locale) {
         handlerInput.getAttributesManager().setSessionAttributes(Collections.singletonMap(SHOULD_PICK_CATEGORY, true));
 
         String speechText = I18nResource.getString("ask_type", locale);
@@ -75,17 +77,33 @@ public class ColoringPagesIntentHandler implements RequestHandler {
                 .build();
     }
 
-    private String getSlotId(Slot slot) {
+    private static String getSlotId(Slot slot) {
         return slot.getResolutions()
-                            .getResolutionsPerAuthority()
-                            .get(0)
-                            .getValues()
-                            .get(0)
-                            .getValue()
-                            .getId();
+                .getResolutionsPerAuthority()
+                .get(0)
+                .getValues()
+                .get(0)
+                .getValue()
+                .getId();
     }
 
-    static SendRequestDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
+    static Optional<Response> sendToHPPrinter(ResponseBuilder responseBuilder, Locale locale, ColoringPagesResource resource) {
+        String url = UrlUtils.pickUrl(resource.urls());
+        String name = UrlUtils.getNameFromUrl(url);
+        String resourceName = resource.capitalizeName();
+
+        String speechText = String.format(I18nResource.getString("sent_message", locale), resourceName);
+        String cardTitle = I18nResource.getString("title_card", locale);
+        String cardText = I18nResource.getString("sent_message_card", locale);
+
+        return responseBuilder
+                .withSpeech(speechText)
+                .withSimpleCard(cardTitle, cardText)
+                .addDirective(hpPrinterDirective(name, url, resource, locale))
+                .build();
+    }
+
+    private static SendRequestDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
         String extension = UrlUtils.getExtensionFromUrl(url);
         Map<String, Object> payload = generatePayload(extension, name, url, resource, locale);
 
