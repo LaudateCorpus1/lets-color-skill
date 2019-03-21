@@ -26,7 +26,7 @@ that Amazon provides us. The interaction between the user and Alexa should be si
         We also need to include `Amazon.YesIntent` and `Amazon.NoIntent` [built in intents](https://developer.amazon.com/docs/custom-skills/standard-built-in-intents.html#available-standard-built-in-intents).\
         The `Amazon.FallbackIntent`, `Amazon.StopIntent` and `Amazon.CancelIntent` should be already there after the skill creation.
 
-        So the Intents that we’ll be using and will need to create are:
+        So the Intents that we’ll be using create are:
 
         * ColoringPagesIntent
         * Amazon.YesIntent
@@ -35,7 +35,8 @@ that Amazon provides us. The interaction between the user and Alexa should be si
         * Amazon.StopIntent
         * Amazon.CancelIntent
 
-        The Fallback intent is for when Alexa doesn’t understand clearly what you said. The last two intentions are to close the skill elegantly.
+        The Fallback intent is for when Alexa doesn’t understand clearly what the user said. The last two intentions 
+        are to close the skill elegantly.
 
         Let’s focus on our main custom Intent: *ColoringPagesIntent*.\
         We’re going to accept two ways of asking for coloring pages:\
@@ -149,7 +150,7 @@ that Amazon provides us. The interaction between the user and Alexa should be si
         ```
         After this validation, we are able to implement each response properly.
 
-        1. #####Implementing `askToSortCategory` method:
+        1. ##### Implementing `askToSortCategory` method:
             This method corresponds to when user has **not** specified a category.\
             There's no secret in this method, we'll just need to ask the user if he wants us to pick a category for him.
 
@@ -250,7 +251,7 @@ that Amazon provides us. The interaction between the user and Alexa should be si
                 again trigger the `AMAZON.FallbackIntent`.\
                 That's it for `askForCategory` method. Let's move on to `handleCategory` method.
 
-        2. #####Implementing `handleCategory` method and working with `Skill Connections`:
+        2. ##### Implementing `handleCategory` method and working with `Skill Connections`:
             In this method is where all the "magic" happens. It's where we use [`Skill Connections`](https://developer.amazon.com/docs/custom-skills/skill-connections.html)
              to ask **HP Printer Skill* to print the selected coloring page.
             ```
@@ -367,4 +368,61 @@ that Amazon provides us. The interaction between the user and Alexa should be si
             ```
 
             We're just checking the status and respond to Alexa accordingly. Note that if you don't want to respond anything
-            you can, just returning `Optional.empty()`.
+            you can, just returning `Optional.empty()`. And that's it. Our skill is finally good to go!
+            
+        3. ##### Deploying the skill:
+            Now that our skill is ready, we have to generate our *Jar* file so we can upload to AWS.
+            For that we'll use the `maven-shade-plugin`:
+            ```
+            <build>
+                ...
+                    <plugins>
+                        ...
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-shade-plugin</artifactId>
+                            <version>3.2.0</version>
+                            <executions>
+                                <execution>
+                                    <phase>package</phase>
+                                    <goals>
+                                        <goal>shade</goal>
+                                    </goals>
+                                    <configuration>
+                                        <transformers>
+                                            <transformer
+                                                    implementation="com.github.edwgiz.mavenShadePlugin.log4j2CacheTransformer.PluginsCacheFileTransformer">
+                                            </transformer>
+                                        </transformers>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>com.github.edwgiz</groupId>
+                                    <artifactId>maven-shade-plugin.log4j2-cachefile-transformer</artifactId>
+                                    <version>2.8.1</version>
+                                </dependency>
+                            </dependencies>
+                        </plugin>
+                        ...
+                    </plugins>
+                ...
+                </build>
+            ```
+            Now just run the maven command to package it:
+
+            `mvn package`
+
+            The artifact should be located at `$project/target/lets-color-1.0-SNATPSHOT.jar`  
+            Please make sure to have an account and have followed [this steps](https://alexa-skills-kit-sdk-for-java.readthedocs.io/en/latest/Developing-Your-First-Skill.html#uploading-your-skill-to-aws-lambda)
+            so you will be able to upload the *jar* file properly.
+
+            That's it!
+
+        4. ##### Closing Thoughts
+            I hope this guide was useful for you and can help you create a skill that sends jobs to **HP Printer
+            Skill** to be printed.
+            If you have any questions, comments or feedback feel try to contact us.
+        
+           
