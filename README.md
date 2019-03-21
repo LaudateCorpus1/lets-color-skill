@@ -1,11 +1,11 @@
-##Let’s Color Skill
+## Let’s Color Skill
 
 1. **About the skill:**\
 Let’s create a skill that has a real purpose. The goal here is to show how to communicate and request a job to 
 HP printer skill from another skill. For that our skill will need to have printable content. So, the content that our 
 skill will provide will be coloring pages. Let’s call our skill as *“let’s color”*, or known as *requester skill*.\
 So our flow will look like:
-![alt text](/home/marcelo/Downloads/Sample_Connected_Skill.jpg)
+![alt text](images/Sample_Connected_Skill.jpg)
 The image is self explanatory, but as you can see, the way our skill will communicate with HP Printer skill is made by 
 Amazon Skill Connections. 
 
