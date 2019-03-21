@@ -8,20 +8,20 @@ Make sure to:
  - Have an [Amazon Web Services (AWS)](https://aws.amazon.com/) account. This tutorial uses AWS Lambda to host the skill
  - Have read the Amazon guide [Developing your first skill](https://alexa-skills-kit-sdk-for-java.readthedocs.io/en/latest/Developing-Your-First-Skill.html). This can help to understand better some concepts described in this guide.
 
-1. **About the skill:**\
-Let’s create a skill that has a real purpose. The goal here is to show how to communicate and request a job to 
-HP printer skill from another skill. For that our skill will need to have printable content. So, the content that our 
-skill will provide will be coloring pages. Let’s call our skill as *“let’s color”*, or known as *requester skill*.\
-So our flow will look like:
-![alt text](images/Sample_Connected_Skill.jpg)
-The image is self explanatory, but as you can see, the way our skill will communicate with HP Printer skill is made by 
-Amazon Skill Connections. 
+1. #### About the skill:
+    Let’s create a skill that has a real purpose. The goal here is to show how to communicate and request a job to 
+    HP printer skill from another skill. For that our skill will need to have printable content. So, the content that our 
+    skill will provide will be coloring pages. Let’s call our skill as *“let’s color”*, or known as *requester skill*.\
+    So our flow will look like:
+    ![alt text](images/Sample_Connected_Skill.jpg)
+    The image is self explanatory, but as you can see, the way our skill will communicate with HP Printer skill is made by 
+    Amazon Skill Connections. 
 
-2. **Creating the skill:**\
-For this tutorial, our skill will be written in `Java` language using the [official SDK](https://github.com/alexa/alexa-skills-kit-sdk-for-java) 
-that Amazon provides us. The interaction between the user and Alexa should be simple but we’ll have to handle unpredictable situations 
-(Not so unpredictable).
-    1. **Intent:**\
+2. #### Creating the skill:
+    For this tutorial, our skill will be written in `Java` language using the [official SDK](https://github.com/alexa/alexa-skills-kit-sdk-for-java) 
+    that Amazon provides us. The interaction between the user and Alexa should be simple but we’ll have to handle unpredictable situations 
+    (Not so unpredictable).
+    1. ##### Intent:
         Our skill has only one custom Intent which should handle every Coloring Pages interaction. Let’s call it *ColoringPagesIntent*.\
         We also need to include `Amazon.YesIntent` and `Amazon.NoIntent` [built in intents](https://developer.amazon.com/docs/custom-skills/standard-built-in-intents.html#available-standard-built-in-intents).\
         The `Amazon.FallbackIntent`, `Amazon.StopIntent` and `Amazon.CancelIntent` should be already there after the skill creation.
@@ -50,13 +50,13 @@ that Amazon provides us. The interaction between the user and Alexa should be si
         * print a coloring page
         * coloring page
 
-    2. **Slot:**\
+    2. ##### Slot:
         Now it's time to create a slot, so we can use it in our Custom Intent.
         Let’s call it `COLORING_PAGE_TYPE`. The slot values that we’re going to accept are: `ANIMALS`, `FRUITS`, `ALPHABET`, `NATURE` and `THINGS`.
 
         Don’t forget to add the slot to the intent. We’re using *COLORING_PAGE_TYPE* as name as well.
 
-    3. **Handling ColoringPagesIntent:**\
+    3. ##### Handling ColoringPagesIntent:
         Okay, the first thing we need to have in mind is the fact that user can or cannot specify the kind of category he wants.
         Based on that, if the user does not specify a category, we’ll ask if we can pick a category for him. 
         In other words, we’ll sort the available categories and pick one. **OR** we’ll just get the category he said and then send to the printer.
@@ -71,7 +71,7 @@ that Amazon provides us. The interaction between the user and Alexa should be si
 
         Very simple.
         
-    4. **Developing let’s color skill:**\
+    4. ##### Developing let’s color skill:
         After setting up the invocation name, endpoint, intents and slot, we’re ready to implement the code.\
         If you just want to look at the code, you can find it [here](https://github.azc.ext.hp.com/IoT-Voice/lets-color-skill).         
 
@@ -370,7 +370,7 @@ that Amazon provides us. The interaction between the user and Alexa should be si
             We're just checking the status and respond to Alexa accordingly. Note that if you don't want to respond anything
             you can, just returning `Optional.empty()`. And that's it. Our skill is finally good to go!
             
-3. ##### Deploying the skill:
+3. #### Deploying the skill:
     Now that our skill is ready, we have to generate our *Jar* file so we can upload to AWS.
     For that we'll use the `maven-shade-plugin`:
     ```
@@ -420,7 +420,7 @@ that Amazon provides us. The interaction between the user and Alexa should be si
 
     That's it!
 
-4. ##### Closing Thoughts
+4. #### Closing Thoughts
     I hope this guide was useful for you and can help you create a skill that sends jobs to **HP Printer
     Skill** to be printed.
     If you have any questions, comments or feedback feel try to contact us.
