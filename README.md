@@ -2,6 +2,12 @@
 
 This is a sample skill to ilustrate how to use the amazing Amazon [Skill Connections](https://developer.amazon.com/docs/custom-skills/skill-connections.html) to communicate with **HP Printer Skill** to send print jobs to your printer.
 
+##### Prerequisites:
+Make sure to:
+ - Have an [Amazon Developer](https://developer.amazon.com/) account.
+ - Have an [Amazon Web Services (AWS)](https://aws.amazon.com/) account. This tutorial uses AWS Lambda to host the skill
+ - Have read the Amazon guide [Developing your first skill](https://alexa-skills-kit-sdk-for-java.readthedocs.io/en/latest/Developing-Your-First-Skill.html). This can help to understand better some concepts described in this guide.
+
 1. **About the skill:**\
 Let’s create a skill that has a real purpose. The goal here is to show how to communicate and request a job to 
 HP printer skill from another skill. For that our skill will need to have printable content. So, the content that our 
@@ -17,7 +23,7 @@ that Amazon provides us. The interaction between the user and Alexa should be si
 (Not so unpredictable).
     1. **Intent:**\
         Our skill has only one custom Intent which should handle every Coloring Pages interaction. Let’s call it *ColoringPagesIntent*.\
-        We also need to include `Amazon.YesIntent` and `Amazon.NoIntent` built in Intents.\
+        We also need to include `Amazon.YesIntent` and `Amazon.NoIntent` [built in intents](https://developer.amazon.com/docs/custom-skills/standard-built-in-intents.html#available-standard-built-in-intents).\
         The `Amazon.FallbackIntent`, `Amazon.StopIntent` and `Amazon.CancelIntent` should be already there after the skill creation.
 
         So the Intents that we’ll be using and will need to create are:
