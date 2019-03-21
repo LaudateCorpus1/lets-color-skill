@@ -9,6 +9,9 @@ import com.hp.letscolor.resource.I18nResource;
 import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * Intent Handler for Built In intent AMAZON.NoIntent
+ */
 public class NoIntentHandler implements RequestHandler {
 
     @Override

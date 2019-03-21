@@ -10,6 +10,9 @@ import com.hp.letscolor.resource.I18nResource;
 import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * Intent Handler for Launch Request
+ */
 public class LaunchIntentHandler implements RequestHandler {
 
     @Override

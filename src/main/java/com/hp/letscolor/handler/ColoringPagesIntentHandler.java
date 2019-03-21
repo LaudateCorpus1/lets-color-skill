@@ -34,6 +34,9 @@ import static com.hp.letscolor.resource.SkillConnectionsConstants.TYPE;
 import static com.hp.letscolor.resource.SkillConnectionsConstants.URL;
 import static com.hp.letscolor.resource.SkillConnectionsConstants.VERSION;
 
+/**
+ * Intent Handler for the Custom Intent ColoringPagesIntent
+ */
 public class ColoringPagesIntentHandler implements RequestHandler {
 
     private static Logger logger = LogManager.getLogger(ColoringPagesIntentHandler.class);
@@ -48,6 +51,9 @@ public class ColoringPagesIntentHandler implements RequestHandler {
         return handlerInput.matches(Predicates.intentName("ColoringPagesIntent"));
     }
 
+    /**
+     * This method handles the ColoringPagesIntent.
+     */
     @Override
     public Optional<Response> handle(HandlerInput handlerInput) {
         Request request = handlerInput.getRequestEnvelope().getRequest();
@@ -65,6 +71,9 @@ public class ColoringPagesIntentHandler implements RequestHandler {
         return askToSortCategory(handlerInput, locale);
     }
 
+    /**
+     * return the response with Directive responsible for sending the job for HP PRinter Skill.
+     */
     private static Optional<Response> handleCategory(HandlerInput handlerInput, Locale locale, Slot coloringPageType) {
         String coloringPageId = getSlotId(coloringPageType);
         ColoringPagesResource resource = ColoringPagesResource.valueOf(coloringPageId);
@@ -72,6 +81,10 @@ public class ColoringPagesIntentHandler implements RequestHandler {
     }
 
 
+    /**
+     * Returns a question to the user
+     * @return response containing the question of sorting the category.
+     */
     private Optional<Response> askToSortCategory(HandlerInput handlerInput, Locale locale) {
         handlerInput.getAttributesManager().setSessionAttributes(Collections.singletonMap(SHOULD_PICK_CATEGORY, true));
 
@@ -84,6 +97,11 @@ public class ColoringPagesIntentHandler implements RequestHandler {
                 .build();
     }
 
+    /**
+     * Auxiliary method to get the ID value of a given Slot.
+     * @param slot
+     * @return the id value of a slot
+     */
     private static String getSlotId(Slot slot) {
         return slot.getResolutions()
                 .getResolutionsPerAuthority()
@@ -94,6 +112,9 @@ public class ColoringPagesIntentHandler implements RequestHandler {
                 .getId();
     }
 
+    /**
+     * Returns a response with the SendRequestDirective with the needed data so Alexa can send to HP Printer Skill.
+     */
     static Optional<Response> sendToHPPrinter(ResponseBuilder responseBuilder, Locale locale, ColoringPagesResource resource) {
         String url = UrlUtils.pickUrl(resource.urls());
         String name = UrlUtils.getNameFromUrl(url);
@@ -110,6 +131,9 @@ public class ColoringPagesIntentHandler implements RequestHandler {
                 .build();
     }
 
+    /**
+     * Generates the SendRequestDirective with the payload populated property
+     */
     private static SendRequestDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
         String extension = UrlUtils.getExtensionFromUrl(url);
         Map<String, Object> payload = generatePayload(extension, name, url, resource, locale);
@@ -121,6 +145,9 @@ public class ColoringPagesIntentHandler implements RequestHandler {
                 .build();
     }
 
+    /**
+     * @return the payload with all the needed attributes for a PRINT Connection type.
+     */
     private static Map<String, Object> generatePayload(String extension, String name, String url,
                                                        ColoringPagesResource resource, Locale locale) {
         String requestType = getRequestType(extension);
@@ -143,6 +170,9 @@ public class ColoringPagesIntentHandler implements RequestHandler {
         return payload;
     }
 
+    /**
+     * Returns the Print Request based on a given exntesion
+     */
     private static String getRequestType(String extension) {
         switch (extension.toUpperCase()) {
             case "PDF":

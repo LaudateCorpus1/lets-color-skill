@@ -12,6 +12,9 @@ import com.hp.letscolor.handler.NoIntentHandler;
 import com.hp.letscolor.handler.YesIntentHandler;
 
 
+/**
+ * This is the Entry point for Lambda usage. One should register all of Intent Handlers.
+ */
 public class ColoringPagesStreamHandler extends SkillStreamHandler {
 
     private static Skill getSkill() {

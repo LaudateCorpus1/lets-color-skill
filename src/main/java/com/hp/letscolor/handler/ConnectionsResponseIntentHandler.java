@@ -15,6 +15,9 @@ import java.util.Optional;
 
 import static com.hp.letscolor.handler.ColoringPagesIntentHandler.COLORING_PAGES_TOKEN;
 
+/**
+ * Intent Handler for Connections Response
+ */
 public class ConnectionsResponseIntentHandler implements RequestHandler {
 
     private Logger logger = LogManager.getLogger(ConnectionsResponseIntentHandler.class);
