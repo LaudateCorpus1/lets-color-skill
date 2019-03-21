@@ -17,7 +17,7 @@ So our flow will look like:
 The image is self explanatory, but as you can see, the way our skill will communicate with HP Printer skill is made by 
 Amazon Skill Connections. 
 
-2. **Create the skill:**\
+2. **Creating the skill:**\
 For this tutorial, our skill will be written in `Java` language using the [official SDK](https://github.com/alexa/alexa-skills-kit-sdk-for-java) 
 that Amazon provides us. The interaction between the user and Alexa should be simple but we’ll have to handle unpredictable situations 
 (Not so unpredictable).
@@ -56,11 +56,7 @@ that Amazon provides us. The interaction between the user and Alexa should be si
 
         Don’t forget to add the slot to the intent. We’re using *COLORING_PAGE_TYPE* as name as well.
 
-    3. **Developing let’s color skill:**\
-        After setting up the invocation name, endpoint, intents and slot, we’re ready to implement the code.\
-        If you just want to look at the code, you can find it [here](https://github.azc.ext.hp.com/IoT-Voice/lets-color-skill).
-
-    4. **Handling ColoringPagesIntent:**\
+    3. **Handling ColoringPagesIntent:**\
         Okay, the first thing we need to have in mind is the fact that user can or cannot specify the kind of category he wants.
         Based on that, if the user does not specify a category, we’ll ask if we can pick a category for him. 
         In other words, we’ll sort the available categories and pick one. **OR** we’ll just get the category he said and then send to the printer.
@@ -73,7 +69,11 @@ that Amazon provides us. The interaction between the user and Alexa should be si
 
         ![alt text](images/with_category_interaction.jpg)
 
-        Very simple. 
+        Very simple.
+        
+    4. **Developing let’s color skill:**\
+        After setting up the invocation name, endpoint, intents and slot, we’re ready to implement the code.\
+        If you just want to look at the code, you can find it [here](https://github.azc.ext.hp.com/IoT-Voice/lets-color-skill).         
 
         Let’s implement our class then.\
         The first method that we need to implement is the `canHandle` so we can tell the SDK that we’re handling all 
@@ -370,59 +370,59 @@ that Amazon provides us. The interaction between the user and Alexa should be si
             We're just checking the status and respond to Alexa accordingly. Note that if you don't want to respond anything
             you can, just returning `Optional.empty()`. And that's it. Our skill is finally good to go!
             
-        3. ##### Deploying the skill:
-            Now that our skill is ready, we have to generate our *Jar* file so we can upload to AWS.
-            For that we'll use the `maven-shade-plugin`:
-            ```
-            <build>
+3. ##### Deploying the skill:
+    Now that our skill is ready, we have to generate our *Jar* file so we can upload to AWS.
+    For that we'll use the `maven-shade-plugin`:
+    ```
+    <build>
+        ...
+            <plugins>
                 ...
-                    <plugins>
-                        ...
-                        <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-shade-plugin</artifactId>
-                            <version>3.2.0</version>
-                            <executions>
-                                <execution>
-                                    <phase>package</phase>
-                                    <goals>
-                                        <goal>shade</goal>
-                                    </goals>
-                                    <configuration>
-                                        <transformers>
-                                            <transformer
-                                                    implementation="com.github.edwgiz.mavenShadePlugin.log4j2CacheTransformer.PluginsCacheFileTransformer">
-                                            </transformer>
-                                        </transformers>
-                                    </configuration>
-                                </execution>
-                            </executions>
-                            <dependencies>
-                                <dependency>
-                                    <groupId>com.github.edwgiz</groupId>
-                                    <artifactId>maven-shade-plugin.log4j2-cachefile-transformer</artifactId>
-                                    <version>2.8.1</version>
-                                </dependency>
-                            </dependencies>
-                        </plugin>
-                        ...
-                    </plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                            <configuration>
+                                <transformers>
+                                    <transformer
+                                            implementation="com.github.edwgiz.mavenShadePlugin.log4j2CacheTransformer.PluginsCacheFileTransformer">
+                                    </transformer>
+                                </transformers>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.github.edwgiz</groupId>
+                            <artifactId>maven-shade-plugin.log4j2-cachefile-transformer</artifactId>
+                            <version>2.8.1</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
                 ...
-                </build>
-            ```
-            Now just run the maven command to package it:
+            </plugins>
+        ...
+        </build>
+    ```
+    Now just run the maven command to package it:
 
-            `mvn package`
+    `mvn package`
 
-            The artifact should be located at `$project/target/lets-color-1.0-SNATPSHOT.jar`  
-            Please make sure to have an account and have followed [this steps](https://alexa-skills-kit-sdk-for-java.readthedocs.io/en/latest/Developing-Your-First-Skill.html#uploading-your-skill-to-aws-lambda)
-            so you will be able to upload the *jar* file properly.
+    The artifact should be located at `$project/target/lets-color-1.0-SNATPSHOT.jar`  
+    Please make sure to have an account and have followed [this steps](https://alexa-skills-kit-sdk-for-java.readthedocs.io/en/latest/Developing-Your-First-Skill.html#uploading-your-skill-to-aws-lambda)
+    so you will be able to upload the *jar* file properly.
 
-            That's it!
+    That's it!
 
-        4. ##### Closing Thoughts
-            I hope this guide was useful for you and can help you create a skill that sends jobs to **HP Printer
-            Skill** to be printed.
-            If you have any questions, comments or feedback feel try to contact us.
+4. ##### Closing Thoughts
+    I hope this guide was useful for you and can help you create a skill that sends jobs to **HP Printer
+    Skill** to be printed.
+    If you have any questions, comments or feedback feel try to contact us.
         
            
