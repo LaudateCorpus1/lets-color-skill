@@ -20,14 +20,13 @@ public class LaunchIntentHandler implements RequestHandler {
     @Override
     public Optional<Response> handle(HandlerInput input) {
         Locale locale = Locale.forLanguageTag(input.getRequestEnvelope().getRequest().getLocale());
-
         String speechText = I18nResource.getString("welcome_message", locale);
         String cardTitle = I18nResource.getString("title_card", locale);
         return input.getResponseBuilder()
                 .withSpeech(speechText)
                 .withSimpleCard(cardTitle, speechText)
                 .withReprompt(speechText)
-                .withShouldEndSession(true)
+                .withShouldEndSession(false)
                 .build();
     }
 

@@ -32,8 +32,9 @@
             }
           ],
           "samples": [
-            "{COLORING_PAGE_TYPE} category",
             "print me a {COLORING_PAGE_TYPE}",
+            "{COLORING_PAGE_TYPE} category",
+            "print me a {COLORING_PAGE_TYPE} category",
             "{COLORING_PAGE_TYPE}",
             "print {COLORING_PAGE_TYPE} coloring page",
             "print coloring pages from category {COLORING_PAGE_TYPE}",

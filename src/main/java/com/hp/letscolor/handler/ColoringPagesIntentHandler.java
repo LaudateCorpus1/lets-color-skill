@@ -22,9 +22,20 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.hp.letscolor.resource.SkillConnectionsConstants.CONTEXT;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.DESCRIPTION;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.IMAGE_TYPE;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.PRINT_IMAGE_REQUEST;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.PRINT_PDF_REQUEST;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.PRINT_WEB_PAGE_REQUEST;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.PROVIDER_ID;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.TITLE;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.TYPE;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.URL;
+import static com.hp.letscolor.resource.SkillConnectionsConstants.VERSION;
+
 public class ColoringPagesIntentHandler implements RequestHandler {
 
-    public static final String PROVIDER_ID = "PROVIDER_ID";
     private static Logger logger = LogManager.getLogger(ColoringPagesIntentHandler.class);
 
     static final String SHOULD_PICK_CATEGORY = "should_pick_category";
@@ -43,17 +54,13 @@ public class ColoringPagesIntentHandler implements RequestHandler {
         IntentRequest intentRequest = (IntentRequest) request;
         Intent intent = intentRequest.getIntent();
         Locale locale = Locale.forLanguageTag(intentRequest.getLocale());
+
         Map<String, Slot> slots = intent.getSlots();
+        Slot coloringPageType = slots.get(COLORING_PAGE_TYPE);
 
-        Map<String, Object> sessionAttributes = handlerInput.getAttributesManager().getSessionAttributes();
-        Boolean shouldChooseCategory = (Boolean) sessionAttributes.get(SHOULD_PICK_CATEGORY);
-        if (shouldChooseCategory == null || !shouldChooseCategory) {
-            Slot coloringPageType = slots.get(COLORING_PAGE_TYPE);
-
-            if (coloringPageType != null && coloringPageType.getResolutions() != null
-                    && coloringPageType.getResolutions().toString().contains("ER_SUCCESS_MATCH")) {
-                return handleCategory(handlerInput, locale, coloringPageType);
-            }
+        if (coloringPageType != null && coloringPageType.getResolutions() != null
+                && coloringPageType.getResolutions().toString().contains("ER_SUCCESS_MATCH")) {
+            return handleCategory(handlerInput, locale, coloringPageType);
         }
         return askToSortCategory(handlerInput, locale);
     }
@@ -118,20 +125,20 @@ public class ColoringPagesIntentHandler implements RequestHandler {
                                                        ColoringPagesResource resource, Locale locale) {
         String requestType = getRequestType(extension);
         Map<String, Object> payload = new HashMap<>();
-        payload.put("@type", requestType);
-        payload.put("@version", "1");
-        payload.put("title", name);
-        payload.put("description", String.format(I18nResource.getString("category_of", locale), resource.name()));
-        payload.put("url", url);
-        if (requestType.equals("PrintImageRequest")) {
-            payload.put("imageType", extension.toUpperCase());
+        payload.put(TYPE, requestType);
+        payload.put(VERSION, "1");
+        payload.put(TITLE, name);
+        payload.put(DESCRIPTION, String.format(I18nResource.getString("category_of", locale), resource.name()));
+        payload.put(URL, url);
+        if (requestType.equals(PRINT_IMAGE_REQUEST)) {
+            payload.put(IMAGE_TYPE, extension.toUpperCase());
         }
         String providerId = System.getenv(PROVIDER_ID);
 
         if (providerId != null) {
             Map<String, Object> context = new HashMap<>();
-            context.put("providerId", providerId);
-            payload.put("context", context);
+            context.put(PROVIDER_ID, providerId);
+            payload.put(CONTEXT, context);
         }
         return payload;
     }
@@ -139,16 +146,16 @@ public class ColoringPagesIntentHandler implements RequestHandler {
     private static String getRequestType(String extension) {
         switch (extension.toUpperCase()) {
             case "PDF":
-                return "PrintPDFRequest";
+                return PRINT_PDF_REQUEST;
             case "WebPage":
-                return "PrintWebPageRequest";
+                return PRINT_WEB_PAGE_REQUEST;
             case "JPG":
             case "GIF":
             case "PNG":
             case "TIF":
-                return "PrintImageRequest";
+                return PRINT_IMAGE_REQUEST;
             default:
-                return "PrintPDFRequest";
+                return PRINT_PDF_REQUEST;
         }
     }
 }
