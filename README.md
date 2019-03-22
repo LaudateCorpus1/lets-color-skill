@@ -380,10 +380,6 @@ Make sure to:
                 That's it for `askForCategory` method. Let's move on to `handleCategory` method.
 
         2. #### Implementing `handleCategory` method:<a name="implementing-handlecategory-method"></a>
-             No big deal here, just getting the name and url of the given category, then get the text and text card from our 
-             message resources and then prepare to return to the user the message. 
-             But this time we're adding a [directive](https://developer.amazon.com/docs/alexa-voice-service/interaction-model.html#interfaces)
-             and calling `hpPrinterDirective` method which is responsible for doing `Skill Connections` magic.
              ```
              static Optional<Response> sendToHPPrinter(ResponseBuilder responseBuilder, Locale locale, ColoringPagesResource resource) {
                  String url = UrlUtils.pickUrl(resource.urls());
@@ -401,6 +397,10 @@ Make sure to:
                          .build();
                  }
              ```
+             No big deal here, just getting the name and url of the given category, then get the text and text card from our 
+             message resources and then prepare to return to Alexa the message. 
+             But this time we're adding a [directive](https://developer.amazon.com/docs/alexa-voice-service/interaction-model.html#interfaces)
+             and calling `hpPrinterDirective` method which is responsible for doing `Skill Connections` magic.
          
         3. #### Skill Connections:<a name="skill-connections"></a>
         
@@ -409,25 +409,8 @@ Make sure to:
             feature to print the selected coloring page.
             Basically the `hpPrinterDirective` method returns a Directive, a `SendRequestDirective` to be more specific.
             This `SendRequestDirective` is responsible to tell Alexa that we want to delegate a job to other capable skills,
-            in this case delegate a coloring page to HP Printer Skill to be printed.
-              
-            ```
-            static Optional<Response> sendToHPPrinter(ResponseBuilder responseBuilder, Locale locale, ColoringPagesResource resource) {
-                String url = UrlUtils.pickUrl(resource.urls());
-                String name = UrlUtils.getNameFromUrl(url);
-                String resourceName = resource.capitalizeName();
+            in this case delegate a coloring page to HP Printer Skill to print.
 
-                String speechText = String.format(I18nResource.getString("sent_message", locale), resourceName);
-                String cardTitle = I18nResource.getString("title_card", locale);
-                String cardText = I18nResource.getString("sent_message_card", locale);
-
-                return responseBuilder
-                        .withSpeech(speechText)
-                        .withSimpleCard(cardTitle, cardText)
-                        .addDirective(hpPrinterDirective(name, url, resource, locale))
-                        .build();
-                }
-            ```
             The`SendRequestDirective` requires three parameters: name, payload and token. Name corresponds to the name of
             the connection (PRINT, SCHEDULE..). Payload contains the required attributes for the connection name you 
             are sending. And token that is a value that comes back to our skill as-is when we receive a response for 
@@ -478,9 +461,9 @@ Make sure to:
             }
             ```
             The first thing we create is the payload, which is nothing more than a `Map<String, Object>`. 
-            We populate the required attributes with our resource information and after that, we generate the 
-            `SendRequestDirective` through the `SendRequestDirectiveBuilder`, specifying that we want to use the name
-            connections as PRINT. We set the payload and a token and that's it!
+            We populate the required attributes with our coloring page information. After that, we generate the 
+            `SendRequestDirective` through the `SendRequestDirectiveBuilder`, specifying that we want to use the 
+            connection name PRINT. Then we put the payload and token into the builder and that's it!
             Our response is completely ready to be sent to Alexa, so it can be forwarded to HP Printer Skill.
 
             Alexa will ask us if we want to print the document using *HP Printer Skill*, and after we agree to use it,
