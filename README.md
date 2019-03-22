@@ -2,13 +2,31 @@
 
 This is a sample skill to ilustrate how to use the amazing Amazon [Skill Connections](https://developer.amazon.com/docs/custom-skills/skill-connections.html) to communicate with **HP Printer Skill** to send print jobs to your printer.
 
-##### Prerequisites:
+# Table of Contents
+1. [Prerequisites](#prequisites)
+2. [About the Skill](#about-the-skill)
+3. [Creating the Skill](#creating-the-skill)
+    1. [Intent](#intent)
+    2. [Slot](#slot)
+    3. [Handling ColoringPagesIntent](#handling-coloring-pages-intent)
+    4. [Developing let’s color skill](#developing-lets-color-skill)
+        1. [Implementing askToSortCategory method](#implementing-asktosortcategory-method)
+            1. [Let's start with Yes](#yes)
+            2. [What about No?](#no)
+        2. [Implementing handleCategory method](#implementing-handlecategory-method)
+        3. [Skill Connections](#skill-connections)
+            1. [Update skill manifest](#update-skill-manifest)
+4. [Deploying the skill](##deploying-the-skill)
+5. [Closing Thoughts](#closing-thoughts)
+
+
+#### Prerequisites: <a name="prequisites"></a>
 Make sure to:
  - Have an [Amazon Developer](https://developer.amazon.com/) account.
  - Have an [Amazon Web Services (AWS)](https://aws.amazon.com/) account. This tutorial uses AWS Lambda to host the skill
- - Have read the Amazon guide [Developing your first skill](https://alexa-skills-kit-sdk-for-java.readthedocs.io/en/latest/Developing-Your-First-Skill.html). This can help to understand better some concepts described in this guide.
+ - Have read the Amazon guide [Developing your first skill](https://alexa-skills-kit-sdk-for-java.readthedocs.io/en/latest/Developing-Your-First-Skill.html). It can help to understand better some concepts described in this guide.
 
-1. #### About the skill:
+1. #### About the skill:<a name="about-the-skill"></a>
     Let’s create a skill that has a real purpose. The goal here is to show how to communicate and request a job to 
     HP printer skill from another skill. For that our skill will need to have printable content. So, the content that our 
     skill will provide will be coloring pages. Let’s call our skill as *“let’s color”*, or known as *requester skill*.\
@@ -17,46 +35,154 @@ Make sure to:
     The image is self explanatory, but as you can see, the way our skill will communicate with HP Printer skill is made by 
     Amazon Skill Connections. 
 
-2. #### Creating the skill:
+2. #### Creating the skill:<a name="creating-the-skill"></a>
     For this tutorial, our skill will be written in `Java` language using the [official SDK](https://github.com/alexa/alexa-skills-kit-sdk-for-java) 
     that Amazon provides us. The interaction between the user and Alexa should be simple but we’ll have to handle unpredictable situations 
     (Not so unpredictable).
-    1. ##### Intent:
+    1. #### Intent:<a name="intent"></a>
         Our skill has only one custom Intent which should handle every Coloring Pages interaction. Let’s call it *ColoringPagesIntent*.\
         We also need to include `Amazon.YesIntent` and `Amazon.NoIntent` [built in intents](https://developer.amazon.com/docs/custom-skills/standard-built-in-intents.html#available-standard-built-in-intents).\
         The `Amazon.FallbackIntent`, `Amazon.StopIntent` and `Amazon.CancelIntent` should be already there after the skill creation.
 
-        So the Intents that we’ll be using create are:
+        The "Yes" and "No" intents we'll be using in interaction. The "Fallback" intent is for when Alexa does not 
+        understand clearly what the user said. The last two intentions are for close the skill elegantly.
 
-        * ColoringPagesIntent
-        * Amazon.YesIntent
-        * Amazon.NoIntent
-        * Amazon.FallbackIntent
-        * Amazon.StopIntent
-        * Amazon.CancelIntent
-
-        The Fallback intent is for when Alexa doesn’t understand clearly what the user said. The last two intentions 
-        are to close the skill elegantly.
-
-        Let’s focus on our main custom Intent: *ColoringPagesIntent*.\
+        And finally our main custom Intent: *ColoringPagesIntent*.\
         We’re going to accept two ways of asking for coloring pages:\
         Specifying the category of coloring pages or just ask for a coloring pages without specifying the category.
+        For that let's create some samples to train the model properly.
 
-        Examples of samples for training our Intent:
+        Let's take a look at the interaction model:
+        ```json
+        {
+          "interactionModel": {
+            "languageModel": {
+              "invocationName": "lets color",
+              "intents": [
+                {
+                  "name": "AMAZON.FallbackIntent",
+                  "samples": []
+                },
+                {
+                  "name": "AMAZON.CancelIntent",
+                  "samples": []
+                },
+                {
+                  "name": "AMAZON.HelpIntent",
+                  "samples": []
+                },
+                {
+                  "name": "AMAZON.StopIntent",
+                  "samples": []
+                },
+                {
+                  "name": "AMAZON.NavigateHomeIntent",
+                  "samples": []
+                },
+                {
+                  "name": "ColoringPagesIntent",
+                  "slots": [
+                    {
+                      "name": "COLORING_PAGE_TYPE",
+                      "type": "COLORING_PAGE_TYPE"
+                    }
+                  ],
+                  "samples": [
+                    "print me a {COLORING_PAGE_TYPE}",
+                    "{COLORING_PAGE_TYPE} category",
+                    "print me a {COLORING_PAGE_TYPE} category",
+                    "{COLORING_PAGE_TYPE}",
+                    "print {COLORING_PAGE_TYPE} coloring page",
+                    "print coloring pages from category {COLORING_PAGE_TYPE}",
+                    "coloring page of {COLORING_PAGE_TYPE}",
+                    "print coloring pages {COLORING_PAGE_TYPE}",
+                    "print a {COLORING_PAGE_TYPE} coloring page",
+                    "I want to color",
+                    "I want a coloring page",
+                    "print me coloring pages",
+                    "print me a coloring page",
+                    "get me a coloring page",
+                    "coloring page",
+                    "coloring pages",
+                    "print coloring pages",
+                    "print a coloring page"
+                  ]
+                },
+                {
+                  "name": "AMAZON.YesIntent",
+                  "samples": []
+                },
+                {
+                  "name": "AMAZON.NoIntent",
+                  "samples": []
+                }
+              ],
+              "types": [
+                {
+                  "name": "COLORING_PAGE_TYPE",
+                  "values": [
+                    {
+                      "id": "THINGS",
+                      "name": {
+                        "value": "THINGS",
+                        "synonyms": [
+                          "Stuff",
+                          "Objects"
+                        ]
+                      }
+                    },
+                    {
+                      "id": "NATURE",
+                      "name": {
+                        "value": "NATURE",
+                        "synonyms": [
+                          "nature"
+                        ]
+                      }
+                    },
+                    {
+                      "id": "ALPHABET",
+                      "name": {
+                        "value": "ALPHABET",
+                        "synonyms": [
+                          "letters",
+                          "letter"
+                        ]
+                      }
+                    },
+                    {
+                      "id": "FRUITS",
+                      "name": {
+                        "value": "FRUITS",
+                        "synonyms": [
+                          "fruit"
+                        ]
+                      }
+                    },
+                    {
+                      "id": "ANIMALS",
+                      "name": {
+                        "value": "ANIMALS",
+                        "synonyms": [
+                          "animal"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+        ```
 
-        * print `{COLORING_PAGE_TYPE}` coloring page
-        * print a coloring page from `{COLORING_PAGE_TYPE}` category
-        * print coloring pages
-        * print a coloring page
-        * coloring page
-
-    2. ##### Slot:
+    2. #### Slot:<a name="slot"></a>
         Now it's time to create a slot, so we can use it in our Custom Intent.
         Let’s call it `COLORING_PAGE_TYPE`. The slot values that we’re going to accept are: `ANIMALS`, `FRUITS`, `ALPHABET`, `NATURE` and `THINGS`.
 
         Don’t forget to add the slot to the intent. We’re using *COLORING_PAGE_TYPE* as name as well.
 
-    3. ##### Handling ColoringPagesIntent:
+    3. #### Handling ColoringPagesIntent:<a name="handling-coloring-pages-intent"></a>
         Okay, the first thing we need to have in mind is the fact that user can or cannot specify the kind of category he wants.
         Based on that, if the user does not specify a category, we’ll ask if we can pick a category for him. 
         In other words, we’ll sort the available categories and pick one. **OR** we’ll just get the category he said and then send to the printer.
@@ -71,7 +197,7 @@ Make sure to:
 
         Very simple.
         
-    4. ##### Developing let’s color skill:
+    4. #### Developing let’s color skill:<a name="developing-lets-color-skill"></a>
         After setting up the invocation name, endpoint, intents and slot, we’re ready to implement the code.\
         If you just want to look at the code, you can find it [here](https://github.azc.ext.hp.com/IoT-Voice/lets-color-skill).         
 
@@ -79,7 +205,7 @@ Make sure to:
         The first method that we need to implement is the `canHandle` so we can tell the SDK that we’re handling all 
         requests coming from *ColoringPagesIntent*.
 
-        ``` 
+        ```java
         public class ColoringPagesIntentHandler implements RequestHandler {
             @Override
             public boolean canHandle(HandlerInput handlerInput) {
@@ -97,24 +223,7 @@ Make sure to:
         In our case, first we need to verify whether the user has provided a category or not before sending the 
         coloring page to HP Printer Skill.
 
-        **Internationalizing:**\
-        Since Java allows us to internationalize in a very simple way and the payload that Alexa sends us always come 
-        with the locale, why not implement it?\
-        We can retrieve user’s locale by getting the locale coming from the payload, which is now converted to 
-        `RequestEnvelope` class. This object has pretty much everything that comes from Alexa JSON payload. 
-        After, we can get the locale object by calling the `Locale.forLanguageTag` method.
-        ```
-        Request request = handlerInput.getRequestEnvelope().getRequest();
-        IntentRequest intentRequest = (IntentRequest) request;
-        Intent intent = intentRequest.getIntent();
-        Locale locale = Locale.forLanguageTag(intentRequest.getLocale());
-        ```
-        Now with locale, we are able to internationalize using the `ResourceBundle` class. Let's create a Helper class 
-        that will get the corresponding String from a given key.
-        This helper will be called `I18nResource` and to get a String, we call `getString` method passing the key and locale:
-        `I18nResource.getString("welcome", locale);`
-
-        Getting back to checking category, we can get the slots from the payload in the same way as we got the locale. 
+        We can get the slots from the payload in the same way as we got the locale. 
         The intent object has all the slots that we configured for our skill on the Alexa console. It’s a `Map<String, Slot>` 
         where you get the slot through the `get` method.\
         Since we’ve set *COLORING_PAGE_TYPE* as the name of the slot, we just call the `get` method of the Map passing 
@@ -130,8 +239,26 @@ Make sure to:
         return askToSortCategory(handlerInput, locale);
         ```
 
-        So far, the code looks like this:
+        **Internationalizing:**
+        
+        Since Java allows us to internationalize in a very simple way and the payload that Alexa sends us always come 
+        with the locale, why not implement it?\
+        We can retrieve user’s locale by getting the locale coming from the payload, which is now converted to 
+        `RequestEnvelope` class. This object has pretty much everything that comes from Alexa JSON payload. 
+        After, we can get the locale object by calling the `Locale.forLanguageTag` method.
         ```
+        Request request = handlerInput.getRequestEnvelope().getRequest();
+        IntentRequest intentRequest = (IntentRequest) request;
+        Intent intent = intentRequest.getIntent();
+        Locale locale = Locale.forLanguageTag(intentRequest.getLocale());
+        ```
+        Now with locale, we are able to internationalize using the `ResourceBundle` class. Let's create a Helper class 
+        that will get the corresponding String from a given key.
+        This helper will be called `I18nResource` and to get a String, we call `getString` method passing the key and locale:
+        `I18nResource.getString("welcome", locale);`
+        
+        So far, the code looks like this:
+        ```java
         @Override
         public Optional<Response> handle(HandlerInput handlerInput) {
             Request request = handlerInput.getRequestEnvelope().getRequest();
@@ -150,11 +277,11 @@ Make sure to:
         ```
         After this validation, we are able to implement each response properly.
 
-        1. ##### Implementing `askToSortCategory` method:
+        1. #### Implementing `askToSortCategory` method:<a name="implementing-asktosortcategory-method"></a>
             This method corresponds to when user has **not** specified a category.\
             There's no secret in this method, we'll just need to ask the user if he wants us to pick a category for him.
 
-            ```
+            ```java
             private Optional<Response> askToSortCategory(HandlerInput handlerInput, Locale locale) {
                  handlerInput.getAttributesManager().setSessionAttributes(Collections.singletonMap(SHOULD_PICK_CATEGORY, true));
 
@@ -176,9 +303,10 @@ Make sure to:
             `AMAZON.FallbackIntent`, to handle those undesired answers gracefully. Let's focus on "Yes/No" answers which are 
             the acceptable answers for us.
 
-            1. Let's start with **"Yes"**:\
+            1. ##### Let's start with Yes:<a name="yes"></a>
                 So the flow would be as follows:
                 ![alt text](images/yes_interaction.jpg)
+                
                 So when the user says "yes", Alexa will send us the Intent `AMAZON.YesIntent`.
                 We should be ready to handle that by creating a RequestHandler that handles the Yes Intent.
                 So, now that we known the user wants us to pick a category, we'll sort/get a category, and then send to the 
@@ -186,7 +314,7 @@ Make sure to:
 
                 In this example, for comprehension sake, we've created a separated handler for YesIntent, the `YesIntentHandler`.
                 This Handler is also pretty simple.
-                ```
+                ```java
                 public class YesIntentHandler implements RequestHandler {
 
                     @Override
@@ -220,14 +348,14 @@ Make sure to:
                 After we get a random category we can send it to the **HP Printer Skill** which is exactly what the method 
                 `sendToHpPrinter` does which we'll check in a minute.
 
-            2. What about **"No**?\
+            2. ##### What about No?<a name="no"></a>
                 Here's the flow:
                 ![alt text](images/no_interaction.jpg "No interaction")
 
                 If a user says "No", it means he does not want us to pick the category, he prefers to choose a category.
                 Alexa will send us `AMAZON.NoIntent`, let's handle it with `NoIntentHandler`.
 
-                ```
+                ```java
                 public class NoIntentHandler implements RequestHandler {
 
                     @Override
@@ -251,9 +379,38 @@ Make sure to:
                 again trigger the `AMAZON.FallbackIntent`.\
                 That's it for `askForCategory` method. Let's move on to `handleCategory` method.
 
-        2. ##### Implementing `handleCategory` method and working with `Skill Connections`:
-            In this method is where all the "magic" happens. It's where we use [`Skill Connections`](https://developer.amazon.com/docs/custom-skills/skill-connections.html)
-             to ask **HP Printer Skill* to print the selected coloring page.
+        2. #### Implementing `handleCategory` method:<a name="implementing-handlecategory-method"></a>
+             No big deal here, just getting the name and url of the given category, then get the text and text card from our 
+             message resources and then prepare to return to the user the message. 
+             But this time we're adding a [directive](https://developer.amazon.com/docs/alexa-voice-service/interaction-model.html#interfaces)
+             and calling `hpPrinterDirective` method which is responsible for doing `Skill Connections` magic.
+             ```
+             static Optional<Response> sendToHPPrinter(ResponseBuilder responseBuilder, Locale locale, ColoringPagesResource resource) {
+                 String url = UrlUtils.pickUrl(resource.urls());
+                 String name = UrlUtils.getNameFromUrl(url);
+                 String resourceName = resource.capitalizeName();
+ 
+                 String speechText = String.format(I18nResource.getString("sent_message", locale), resourceName);
+                 String cardTitle = I18nResource.getString("title_card", locale);
+                 String cardText = I18nResource.getString("sent_message_card", locale);
+ 
+                 return responseBuilder
+                         .withSpeech(speechText)
+                         .withSimpleCard(cardTitle, cardText)
+                         .addDirective(hpPrinterDirective(name, url, resource, locale))
+                         .build();
+                 }
+             ```
+         
+        3. #### Skill Connections:<a name="skill-connections"></a>
+        
+            The `hpPrinterDirective` method is where the "magic" happens. It's where we're going to ask Alexa to 
+            communicate with HP Printer Skill through [`Skill Connections`](https://developer.amazon.com/docs/custom-skills/skill-connections.html) 
+            feature to print the selected coloring page.
+            Basically the `hpPrinterDirective` method returns a Directive, a `SendRequestDirective` to be more specific.
+            This `SendRequestDirective` is responsible to tell Alexa that we want to delegate a job to other capable skills,
+            in this case delegate a coloring page to HP Printer Skill to be printed.
+              
             ```
             static Optional<Response> sendToHPPrinter(ResponseBuilder responseBuilder, Locale locale, ColoringPagesResource resource) {
                 String url = UrlUtils.pickUrl(resource.urls());
@@ -271,15 +428,14 @@ Make sure to:
                         .build();
                 }
             ```
-            No big deal here, just getting the name and url of the given category, then get the text and text card from our 
-            message resources and then prepare to return to the user the message.
-
-            But this time we're adding a [directive](https://developer.amazon.com/docs/alexa-voice-service/interaction-model.html#interfaces)
-            to the response called `SendRequestDirective` from the [Skill Connections](https://developer.amazon.com/docs/custom-skills/skill-connections.html).
-            This directive is responsible to ask Alexa to call HP Printer Skill and send the coloring pages to it.
-            Basically the Payload to be sent is pretty tied to the connection Name. Which means that there are different
-            attributes for each kind of connection. For sending jobs to be printed to HP Printer Skill, we'll working with
-            connection name **"PRINT"**. So the acceptable attributes for this connections are:
+            The`SendRequestDirective` requires three parameters: name, payload and token. Name corresponds to the name of
+            the connection (PRINT, SCHEDULE..). Payload contains the required attributes for the connection name you 
+            are sending. And token that is a value that comes back to our skill as-is when we receive a response for 
+            Alexa regarding the execution of the HP Printer skill.
+ 
+            The Payload is pretty tied to the connection Name. Which means that there are different
+            attributes for each kind of connection. For sending jobs to be printed to HP Printer Skill, we'll be working with
+            connection name **"PRINT"**. So the acceptable attributes for this connection name are:
             - **@version**
             - **@type**: *PrintImageRequest*, *PrintPDFRequest*, *PrintWebPageRequest*
             - **title**: Title of the document to be printed
@@ -287,7 +443,7 @@ Make sure to:
             - **url**: url of the document to be printed
 
             Let's take a look at the `hpPrinterDirective` method and the payload creation:
-            ```
+            ```java
             private static SendRequestDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
                 String extension = UrlUtils.getExtensionFromUrl(url);
                 Map<String, Object> payload = generatePayload(extension, name, url, resource, locale);
@@ -337,7 +493,7 @@ Make sure to:
 
             Let's create a class to handle that.
 
-            ```
+            ```java
             @Override
             public class ConnectionsResponseIntentHandler implements RequestHandler {
 
@@ -368,12 +524,66 @@ Make sure to:
             ```
 
             We're just checking the status and respond to Alexa accordingly. Note that if you don't want to respond anything
-            you can, just returning `Optional.empty()`. And that's it. Our skill is finally good to go!
+            you can, just returning `Optional.empty()`. 
+
+            ##### Update Skill Manifest<a name="update-skill-manifest"></a>
+            Last thing we need to do, is to [register your our as a requester](https://developer.amazon.com/docs/custom-skills/skill-connections.html#register-skill)
+            by updating the skill manifest, so it can be able to delegate jobs to HP Printer Skill.
+                
+            Here's what we need to do to update the manifest:
+            1. Install the Alexa Skill Kit (ASK) CLI: https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html
+            2. Log in with your account
+            3. Get the current manifest of the skill and save to a file:\
+            `ask api get-skill -s [APPLICATION_ID] > skill_manifest.json `
+            4. Change the manifest adding the appropriate connection types you want to request:
+               ```json
+               "apis": {
+                 "custom": {
+                   "endpoint": {
+                     "sslCertificateType": "certificate_type",
+                     "uri": "https://endpoint_of_your_skill"
+                   },
+                   "interfaces": [
+                     {
+                       "type": "RENDER_TEMPLATE"
+                     }
+                   ],
+                   "connections": {
+                     "requires": [
+                       {
+                         "payload": {
+                           "type": "PrintPDFRequest",
+                           "version": "1"
+                         },
+                         "name": "Print"
+                       },
+                       {
+                         "payload": {
+                           "type": "PrintImageRequest",
+                           "version": "1"
+                         },
+                         "name": "Print"
+                       },
+                       {
+                         "payload": {
+                           "type": "PrintWebPageRequest",
+                           "version": "1"
+                         },
+                         "name": "Print"
+                       }
+                     ]
+                   }
+                 }
+               }, 
+               ```
+            - Update the skill manifest with the new changes:\
+              `ask api update-skill -s [APPLICATION_ID] -f skill_manifest.json`
+        And that's it. Our skill is finally good to go!
             
-3. #### Deploying the skill:
+3. #### Deploying the skill:<a name="deploying-the-skill"></a>
     Now that our skill is ready, we have to generate our *Jar* file so we can upload to AWS.
     For that we'll use the `maven-shade-plugin`:
-    ```
+    ```xml
     <build>
         ...
             <plugins>
@@ -420,7 +630,7 @@ Make sure to:
 
     That's it!
 
-4. #### Closing Thoughts
+4. #### Closing Thoughts<a name="closing-thoughts"></a>
     I hope this guide was useful for you and can help you create a skill that sends jobs to **HP Printer
     Skill** to be printed.
     If you have any questions, comments or feedback feel try to contact us.
