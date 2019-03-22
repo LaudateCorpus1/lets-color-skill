@@ -460,6 +460,26 @@ Make sure to:
                 return payload;
             }
             ```
+
+            Here's what Alexa should receive from our skill:
+            ```json
+            {  
+               "directives":[  
+                  {  
+                     "type":"Connections.SendRequest",
+                     "name":"Print",
+                     "payload":{  
+                        "@type":"PrintPDFRequest",
+                        "@version":"1",
+                        "title":"colorme_u_Printable_Page_Animals_Cow.pdf",
+                        "description":"This is a coloring page from category Animals",
+                        "url":"https://lets-color-skill.s3.us-west-2.amazonaws.com/Animals/colorme_u_Printable_Page_Animals_Cow.pdf"
+                     },
+                     "token":"ColoringPages"
+                  }
+               ]
+            }
+            ```
             The first thing we create is the payload, which is nothing more than a `Map<String, Object>`. 
             We populate the required attributes with our coloring page information. After that, we generate the 
             `SendRequestDirective` through the `SendRequestDirectiveBuilder`, specifying that we want to use the 
