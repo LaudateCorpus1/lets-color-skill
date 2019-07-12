@@ -1,8 +1,8 @@
-## Let’s Color Skill
+# Let’s Color Skill
 
 This is a sample skill to ilustrate how to use the amazing Amazon [Skill Connections](https://developer.amazon.com/docs/custom-skills/skill-connections.html) to communicate with **HP Printer Skill** to send print jobs to your printer.
 
-# Table of Contents
+## Table of Contents
 1. [Prerequisites](#prequisites)
 2. [About the Skill](#about-the-skill)
 3. [Creating the Skill](#creating-the-skill)
