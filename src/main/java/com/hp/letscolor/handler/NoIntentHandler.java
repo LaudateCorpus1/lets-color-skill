@@ -1,3 +1,8 @@
+/*
+ * Copyright 2018 HP Development Company, L.P.
+ * SPDX-License-Identifier: MIT
+ */
+
 package com.hp.letscolor.handler;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;

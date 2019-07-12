@@ -18,6 +18,7 @@ This is a sample skill to ilustrate how to use the amazing Amazon [Skill Connect
             1. [Update skill manifest](#update-skill-manifest)
 4. [Deploying the skill](##deploying-the-skill)
 5. [Closing Thoughts](#closing-thoughts)
+5. [License](#license)
 
 
 #### Prerequisites: <a name="prequisites"></a>
@@ -639,3 +640,7 @@ Make sure to:
     If you have any questions, comments or feedback feel try to contact us.
         
            
+
+## License<a name="license"></a>
+
+MIT -- see [LICENSE](LICENSE.md)
