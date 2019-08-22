@@ -10,7 +10,7 @@ import com.amazon.ask.SkillStreamHandler;
 import com.amazon.ask.Skills;
 import com.hp.letscolor.handler.CancelAndStopIntent;
 import com.hp.letscolor.handler.ColoringPagesIntentHandler;
-import com.hp.letscolor.handler.ConnectionsResponseIntentHandler;
+import com.hp.letscolor.handler.SessionResumedHandler;
 import com.hp.letscolor.handler.FallbackIntentHandler;
 import com.hp.letscolor.handler.LaunchIntentHandler;
 import com.hp.letscolor.handler.NoIntentHandler;
@@ -29,7 +29,7 @@ public class ColoringPagesStreamHandler extends SkillStreamHandler {
                         new ColoringPagesIntentHandler(),
                         new YesIntentHandler(),
                         new NoIntentHandler(),
-                        new ConnectionsResponseIntentHandler(),
+                        new SessionResumedHandler(),
                         new CancelAndStopIntent(),
                         new FallbackIntentHandler())
                 .withSkillId("amzn1.ask.skill.13178136-5511-46f9-8106-892ee4563f50")

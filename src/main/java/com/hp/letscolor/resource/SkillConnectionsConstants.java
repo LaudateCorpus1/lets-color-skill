@@ -20,4 +20,5 @@ public class SkillConnectionsConstants {
     public static final String CONTEXT = "context";
     public static final String PRINT_PDF_REQUEST = "PrintPDFRequest";
     public static final String PRINT_WEB_PAGE_REQUEST = "PrintWebPageRequest";
+    public static final String CONNECTION_AMAZON_PRINT_PDF_1 = "connection://AMAZON.PrintPDF/1";
 }

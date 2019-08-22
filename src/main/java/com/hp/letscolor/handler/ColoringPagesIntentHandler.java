@@ -6,13 +6,12 @@
 package com.hp.letscolor.handler;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
-import com.amazon.ask.dispatcher.request.handler.RequestHandler;
+import com.amazon.ask.dispatcher.request.handler.impl.IntentRequestHandler;
 import com.amazon.ask.model.Intent;
 import com.amazon.ask.model.IntentRequest;
-import com.amazon.ask.model.Request;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.Slot;
-import com.amazon.ask.model.interfaces.connections.SendRequestDirective;
+import com.amazon.ask.model.interfaces.connections.V1.StartConnectionDirective;
 import com.amazon.ask.request.Predicates;
 import com.amazon.ask.response.ResponseBuilder;
 import com.hp.letscolor.resource.ColoringPagesResource;
@@ -27,6 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.hp.letscolor.resource.SkillConnectionsConstants.CONNECTION_AMAZON_PRINT_PDF_1;
 import static com.hp.letscolor.resource.SkillConnectionsConstants.CONTEXT;
 import static com.hp.letscolor.resource.SkillConnectionsConstants.DESCRIPTION;
 import static com.hp.letscolor.resource.SkillConnectionsConstants.IMAGE_TYPE;
@@ -42,17 +42,16 @@ import static com.hp.letscolor.resource.SkillConnectionsConstants.VERSION;
 /**
  * Intent Handler for the Custom Intent ColoringPagesIntent
  */
-public class ColoringPagesIntentHandler implements RequestHandler {
+public class ColoringPagesIntentHandler implements IntentRequestHandler {
 
     private static Logger logger = LogManager.getLogger(ColoringPagesIntentHandler.class);
 
     static final String SHOULD_PICK_CATEGORY = "should_pick_category";
     static final String COLORING_PAGES_TOKEN = "ColoringPages";
-    public static final String PRINT_NAME = "Print";
     private static final String COLORING_PAGE_TYPE = "COLORING_PAGE_TYPE";
 
     @Override
-    public boolean canHandle(HandlerInput handlerInput) {
+    public boolean canHandle(HandlerInput handlerInput, IntentRequest intentRequest) {
         return handlerInput.matches(Predicates.intentName("ColoringPagesIntent"));
     }
 
@@ -60,9 +59,7 @@ public class ColoringPagesIntentHandler implements RequestHandler {
      * This method handles the ColoringPagesIntent.
      */
     @Override
-    public Optional<Response> handle(HandlerInput handlerInput) {
-        Request request = handlerInput.getRequestEnvelope().getRequest();
-        IntentRequest intentRequest = (IntentRequest) request;
+    public Optional<Response> handle(HandlerInput handlerInput, IntentRequest intentRequest) {
         Intent intent = intentRequest.getIntent();
         Locale locale = Locale.forLanguageTag(intentRequest.getLocale());
 
@@ -77,7 +74,7 @@ public class ColoringPagesIntentHandler implements RequestHandler {
     }
 
     /**
-     * return the response with Directive responsible for sending the job for HP PRinter Skill.
+     * return the response with Directive responsible for sending the job for HP Printer Skill.
      */
     private static Optional<Response> handleCategory(HandlerInput handlerInput, Locale locale, Slot coloringPageType) {
         String coloringPageId = getSlotId(coloringPageType);
@@ -88,6 +85,7 @@ public class ColoringPagesIntentHandler implements RequestHandler {
 
     /**
      * Returns a question to the user
+     *
      * @return response containing the question of sorting the category.
      */
     private Optional<Response> askToSortCategory(HandlerInput handlerInput, Locale locale) {
@@ -104,6 +102,7 @@ public class ColoringPagesIntentHandler implements RequestHandler {
 
     /**
      * Auxiliary method to get the ID value of a given Slot.
+     *
      * @param slot
      * @return the id value of a slot
      */
@@ -118,7 +117,7 @@ public class ColoringPagesIntentHandler implements RequestHandler {
     }
 
     /**
-     * Returns a response with the SendRequestDirective with the needed data so Alexa can send to HP Printer Skill.
+     * Returns a response with the StartConnectionDirective with the needed data so Alexa can send to HP Printer Skill.
      */
     static Optional<Response> sendToHPPrinter(ResponseBuilder responseBuilder, Locale locale, ColoringPagesResource resource) {
         String url = UrlUtils.pickUrl(resource.urls());
@@ -137,42 +136,42 @@ public class ColoringPagesIntentHandler implements RequestHandler {
     }
 
     /**
-     * Generates the SendRequestDirective with the payload populated property
+     * Generates the StartConnectionDirective with the payload populated property
      */
-    private static SendRequestDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
+    private static StartConnectionDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
         String extension = UrlUtils.getExtensionFromUrl(url);
-        Map<String, Object> payload = generatePayload(extension, name, url, resource, locale);
+        Map<String, Object> payload = generateInput(extension, name, url, resource, locale);
 
-        return SendRequestDirective.builder()
-                .withName(PRINT_NAME)
+        return StartConnectionDirective.builder()
+                .withUri(CONNECTION_AMAZON_PRINT_PDF_1)
                 .withToken(COLORING_PAGES_TOKEN)
-                .withPayload(payload)
+                .withInput(payload)
                 .build();
     }
 
     /**
-     * @return the payload with all the needed attributes for a PRINT Connection type.
+     * @return the input with all the needed attributes for a PRINT Connection type.
      */
-    private static Map<String, Object> generatePayload(String extension, String name, String url,
-                                                       ColoringPagesResource resource, Locale locale) {
+    private static Map<String, Object> generateInput(String extension, String name, String url,
+                                                     ColoringPagesResource resource, Locale locale) {
         String requestType = getRequestType(extension);
-        Map<String, Object> payload = new HashMap<>();
-        payload.put(TYPE, requestType);
-        payload.put(VERSION, "1");
-        payload.put(TITLE, name);
-        payload.put(DESCRIPTION, String.format(I18nResource.getString("category_of", locale), resource.name()));
-        payload.put(URL, url);
+        Map<String, Object> input = new HashMap<>();
+        input.put(TYPE, requestType);
+        input.put(VERSION, "1");
+        input.put(TITLE, name);
+        input.put(DESCRIPTION, String.format(I18nResource.getString("category_of", locale), resource.name()));
+        input.put(URL, url);
         if (requestType.equals(PRINT_IMAGE_REQUEST)) {
-            payload.put(IMAGE_TYPE, extension.toUpperCase());
+            input.put(IMAGE_TYPE, extension.toUpperCase());
         }
         String providerId = System.getenv(PROVIDER_ID);
 
         if (providerId != null) {
             Map<String, Object> context = new HashMap<>();
             context.put(PROVIDER_ID, providerId);
-            payload.put(CONTEXT, context);
+            input.put(CONTEXT, context);
         }
-        return payload;
+        return input;
     }
 
     /**
@@ -180,14 +179,10 @@ public class ColoringPagesIntentHandler implements RequestHandler {
      */
     private static String getRequestType(String extension) {
         switch (extension.toUpperCase()) {
-            case "PDF":
-                return PRINT_PDF_REQUEST;
             case "WebPage":
                 return PRINT_WEB_PAGE_REQUEST;
             case "JPG":
-            case "GIF":
-            case "PNG":
-            case "TIF":
+            case "JPEG":
                 return PRINT_IMAGE_REQUEST;
             default:
                 return PRINT_PDF_REQUEST;

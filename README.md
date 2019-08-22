@@ -15,7 +15,6 @@ This is a sample skill to ilustrate how to use the amazing Amazon [Skill Connect
             2. [What about No?](#no)
         2. [Implementing handleCategory method](#implementing-handlecategory-method)
         3. [Skill Connections](#skill-connections)
-            1. [Update skill manifest](#update-skill-manifest)
 4. [Deploying the skill](##deploying-the-skill)
 5. [Closing Thoughts](#closing-thoughts)
 5. [License](#license)
@@ -259,7 +258,7 @@ Make sure to:
         `I18nResource.getString("welcome", locale);`
         
         So far, the code looks like this:
-        ```java
+        ```
         @Override
         public Optional<Response> handle(HandlerInput handlerInput) {
             Request request = handlerInput.getRequestEnvelope().getRequest();
@@ -408,57 +407,61 @@ Make sure to:
             The `hpPrinterDirective` method is where the "magic" happens. It's where we're going to ask Alexa to 
             communicate with HP Printer Skill through [`Skill Connections`](https://developer.amazon.com/docs/custom-skills/skill-connections.html) 
             feature to print the selected coloring page.
-            Basically the `hpPrinterDirective` method returns a Directive, a `SendRequestDirective` to be more specific.
-            This `SendRequestDirective` is responsible to tell Alexa that we want to delegate a job to other capable skills,
-            in this case delegate a coloring page to HP Printer Skill to print.
+            Basically the `hpPrinterDirective` method returns a Directive, a `StartConnectionDirective` to be more specific.
+            This `StartConnectionDirective` is responsible to tell Alexa that we want to delegate a job to other capable skills,
+            in this case delegate a coloring page to HP Printer Skill for printing.
 
-            The`SendRequestDirective` requires three parameters: name, payload and token. Name corresponds to the name of
-            the connection (PRINT, SCHEDULE..). Payload contains the required attributes for the connection name you 
+            The`StartConnectionDirective` requires three parameters: uri, input and token. Uri corresponds to the type of
+            the connection (PrintPDF, PrintIMAGE..). Input contains the required attributes for the connection type you 
             are sending. And token that is a value that comes back to our skill as-is when we receive a response for 
             Alexa regarding the execution of the HP Printer skill.
  
-            The Payload is pretty tied to the connection Name. Which means that there are different
-            attributes for each kind of connection. For sending jobs to be printed to HP Printer Skill, we'll be working with
-            connection name **"PRINT"**. So the acceptable attributes for this connection name are:
+            The Input is pretty tied to the connection Uri. Which means that there are different
+            attributes for each kind of connection. For sending jobs to be printed from HP Printer Skill, we'll be working with
+            connection uri **"connection://AMAZON.PrintPDF/1"**. So the acceptable attributes for this connection uri are:
             - **@version**
-            - **@type**: *PrintImageRequest*, *PrintPDFRequest*, *PrintWebPageRequest*
+            - **@type**: *PrintPDFRequest*
             - **title**: Title of the document to be printed
             - **description**: description of the document to be printed
             - **url**: url of the document to be printed
 
+            The supported connections uri are: *connection://AMAZON.PrintPDF/1*, *connection://AMAZON.PrintWebPage/1*
+             and *connection://AMAZON.PrintImage/1* and the request types are respectively `PrintPDFRequest`, 
+             `PrintWebPageRequest`, `PrintImageRequest`.
+
             Let's take a look at the `hpPrinterDirective` method and the payload creation:
             ```java
-            private static SendRequestDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
+            private static StartConnectionDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
                 String extension = UrlUtils.getExtensionFromUrl(url);
-                Map<String, Object> payload = generatePayload(extension, name, url, resource, locale);
+                Map<String, Object> payload = generateInput(extension, name, url, resource, locale);
 
-                return SendRequestDirective.builder()
-                        .withName(PRINT_NAME)
+                return StartConnectionDirective.builder()
+                        .withUri(CONNECTION_AMAZON_PRINT_PDF_1)
                         .withToken(COLORING_PAGES_TOKEN)
-                        .withPayload(payload)
-                        .build();
+                        .withInput(payload)
+                        .build();.withName(PRINT_NAME)
             }
 
-            private static Map<String, Object> generatePayload(String extension, String name, String url,
+            private static Map<String, Object> generateInput(String extension, String name, String url,
                                                                ColoringPagesResource resource, Locale locale) {
                 String requestType = getRequestType(extension);
-                Map<String, Object> payload = new HashMap<>();
-                payload.put(TYPE, requestType);
-                payload.put(VERSION, "1");
-                payload.put(TITLE, name);
-                payload.put(DESCRIPTION, String.format(I18nResource.getString("category_of", locale), resource.name()));
-                payload.put(URL, url);
+                Map<String, Object> input = new HashMap<>();
+                input.put(TYPE, requestType);
+                input.put(VERSION, "1");
+                input.put(TITLE, name);
+                input.put(DESCRIPTION, String.format(I18nResource.getString("category_of", locale), resource.name()));
+                input.put(URL, url);
                 if (requestType.equals(PRINT_IMAGE_REQUEST)) {
-                    payload.put(IMAGE_TYPE, extension.toUpperCase());
+                    input.put(IMAGE_TYPE, extension.toUpperCase());
                 }
                 String providerId = System.getenv(PROVIDER_ID);
         
                 if (providerId != null) {
                     Map<String, Object> context = new HashMap<>();
                     context.put(PROVIDER_ID, providerId);
-                    payload.put(CONTEXT, context);
+                    input.put(CONTEXT, context);
                 }
-                return payload;
+                return input;
             }
             ```
 
@@ -467,9 +470,9 @@ Make sure to:
             {  
                "directives":[  
                   {  
-                     "type":"Connections.SendRequest",
-                     "name":"Print",
-                     "payload":{  
+                     "type": "Connections.StartConnection",
+                     "uri": "connection://AMAZON.PrintPDF/1",
+                     "input":{  
                         "@type":"PrintPDFRequest",
                         "@version":"1",
                         "title":"colorme_u_Printable_Page_Animals_Cow.pdf",
@@ -483,12 +486,12 @@ Make sure to:
             ```
             The first thing we create is the payload, which is nothing more than a `Map<String, Object>`. 
             We populate the required attributes with our coloring page information. After that, we generate the 
-            `SendRequestDirective` through the `SendRequestDirectiveBuilder`, specifying that we want to use the 
-            connection name PRINT. Then we put the payload and token into the builder and that's it!
+            `StartConnectionDirective` through the `StartConnectionDirectiveBuilder`, specifying that we want to use the 
+            connection uri `connection://AMAZON.PrintPDF/1`. Then we put the input and token into the builder and that's it!
             Our response is completely ready to be sent to Alexa, so it can be forwarded to HP Printer Skill.
 
-            Alexa will ask us if we want to print the document using *HP Printer Skill*, and after we agree to use it,
-            if you're linked, the HP Printer Skill will send a card with a link for on-boarding. There we can set our 
+            Alexa will ask us if we want to print the document using *HP Printer Skill*. After we agree to use it,
+            if you are not linked, the HP Printer Skill will send a card with a link for on-boarding. There we can set our 
             printer email address. But if you're already linked, the document will be sent successfully to the HP Printer
             Skill which will do its job, which is print our coloring page!
 
@@ -496,93 +499,38 @@ Make sure to:
             If everything goes well, it'll be a success or else an error with description.
 
             Let's create a class to handle that.
+            The request type that we should receive is a `SessionResumedRequest`.
 
             ```java
-            @Override
-            public class ConnectionsResponseIntentHandler implements RequestHandler {
+                public class SessionResumedHandler implements SessionResumedRequestHandler {
 
-                @Override
-                public boolean canHandle(HandlerInput handlerInput) {
-                    return handlerInput.matches(Predicates.requestType(ConnectionsResponse.class));
-                }
-
-                @Override
-                public Optional<Response> handle(HandlerInput handlerInput) {
-                    Request request = handlerInput.getRequestEnvelope().getRequest();
-                    Locale locale = Locale.forLanguageTag(request.getLocale());
-                    ConnectionsResponse connectionsResponse = (ConnectionsResponse) request;
-                    String token = connectionsResponse.getToken();
-                    if (!token.equals(COLORING_PAGES_TOKEN)) {
-                        return Optional.empty();
+                    @Override
+                    public boolean canHandle(HandlerInput handlerInput, SessionResumedRequest sessionResumedRequest) {
+                        return true;
                     }
-                    String speechKeyText = connectionsResponse.getStatus().getCode().equals("200") ? "response_success" : "response_error";
-                    String speechText = I18nResource.getString(speechKeyText, locale);
-                    String cardTitle = I18nResource.getString("title_card", locale);
-                    return handlerInput.getResponseBuilder()
-                            .withSpeech(speechText)
-                            .withSimpleCard(cardTitle, speechText)
-                            .withShouldEndSession(true)
-                            .build();
+
+                    @Override
+                    public Optional<Response> handle(HandlerInput handlerInput, SessionResumedRequest sessionResumedRequest) {
+                        Locale locale = Locale.forLanguageTag(sessionResumedRequest.getLocale());
+                        ConnectionCompleted cause = (ConnectionCompleted) sessionResumedRequest.getCause();
+                        String token = cause.getToken();
+                        if (!token.equals(COLORING_PAGES_TOKEN)) {
+                            return Optional.empty();
+                        }
+                        String speechKeyText = cause.getStatus().getCode().equals("200") ? "response_success" : "response_error";
+                        String speechText = I18nResource.getString(speechKeyText, locale);
+                        String cardTitle = I18nResource.getString("title_card", locale);
+                        return handlerInput.getResponseBuilder()
+                                .withSpeech(speechText)
+                                .withSimpleCard(cardTitle, speechText)
+                                .withShouldEndSession(true)
+                                .build();
+                    }
                 }
-            }
             ```
 
             We're just checking the status and respond to Alexa accordingly. Note that if you don't want to respond anything
             you can, just returning `Optional.empty()`. 
-
-            ##### Update Skill Manifest<a name="update-skill-manifest"></a>
-            Last thing we need to do, is to [register your our as a requester](https://developer.amazon.com/docs/custom-skills/skill-connections.html#register-skill)
-            by updating the skill manifest, so it can be able to delegate jobs to HP Printer Skill.
-                
-            Here's what we need to do to update the manifest:
-            1. Install the Alexa Skill Kit (ASK) CLI: https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html
-            2. Log in with your account
-            3. Get the current manifest of the skill and save to a file:\
-            `ask api get-skill -s [APPLICATION_ID] > skill_manifest.json `
-            4. Change the manifest adding the appropriate connection types you want to request:
-               ```json
-               "apis": {
-                 "custom": {
-                   "endpoint": {
-                     "sslCertificateType": "certificate_type",
-                     "uri": "https://endpoint_of_your_skill"
-                   },
-                   "interfaces": [
-                     {
-                       "type": "RENDER_TEMPLATE"
-                     }
-                   ],
-                   "connections": {
-                     "requires": [
-                       {
-                         "payload": {
-                           "type": "PrintPDFRequest",
-                           "version": "1"
-                         },
-                         "name": "Print"
-                       },
-                       {
-                         "payload": {
-                           "type": "PrintImageRequest",
-                           "version": "1"
-                         },
-                         "name": "Print"
-                       },
-                       {
-                         "payload": {
-                           "type": "PrintWebPageRequest",
-                           "version": "1"
-                         },
-                         "name": "Print"
-                       }
-                     ]
-                   }
-                 }
-               }, 
-               ```
-            - Update the skill manifest with the new changes:\
-              `ask api update-skill -s [APPLICATION_ID] -f skill_manifest.json`
-        And that's it. Our skill is finally good to go!
             
 3. #### Deploying the skill:<a name="deploying-the-skill"></a>
     Now that our skill is ready, we have to generate our *Jar* file so we can upload to AWS.
