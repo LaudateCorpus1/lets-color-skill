@@ -126,7 +126,7 @@ public class ColoringPagesIntentHandler implements IntentRequestHandler {
 
         String speechText = String.format(I18nResource.getString("sent_message", locale), resourceName);
         String cardTitle = I18nResource.getString("title_card", locale);
-        String cardText = I18nResource.getString("sent_message_card", locale);
+        String cardText = String.format(I18nResource.getString("sent_message_card", locale), resourceName);
 
         return responseBuilder
                 .withSpeech(speechText)

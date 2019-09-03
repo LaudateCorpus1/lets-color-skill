@@ -32,7 +32,7 @@ public class ColoringPagesStreamHandler extends SkillStreamHandler {
                         new SessionResumedHandler(),
                         new CancelAndStopIntent(),
                         new FallbackIntentHandler())
-                .withSkillId("amzn1.ask.skill.13178136-5511-46f9-8106-892ee4563f50")
+                .withSkillId(System.getenv("SKILL_ID"))
                 .build();
     }
 

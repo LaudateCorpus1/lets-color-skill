@@ -9,7 +9,7 @@ package com.hp.letscolor.resource;
  * Constants usable by Skill Connections in general
  */
 public class SkillConnectionsConstants {
-    public static final String PROVIDER_ID = "PROVIDER_ID";
+    public static final String PROVIDER_ID = "providerId";
     public static final String TYPE = "@type";
     public static final String VERSION = "@version";
     public static final String TITLE = "title";
