@@ -12,7 +12,7 @@ import com.hp.letscolor.handler.CancelAndStopIntent;
 import com.hp.letscolor.handler.ColoringPagesIntentHandler;
 import com.hp.letscolor.handler.SessionResumedHandler;
 import com.hp.letscolor.handler.FallbackIntentHandler;
-import com.hp.letscolor.handler.LaunchIntentHandler;
+import com.hp.letscolor.handler.LaunchHandler;
 import com.hp.letscolor.handler.NoIntentHandler;
 import com.hp.letscolor.handler.YesIntentHandler;
 
@@ -25,7 +25,7 @@ public class ColoringPagesStreamHandler extends SkillStreamHandler {
     private static Skill getSkill() {
         return Skills.standard()
                 .addRequestHandlers(
-                        new LaunchIntentHandler(),
+                        new LaunchHandler(),
                         new ColoringPagesIntentHandler(),
                         new YesIntentHandler(),
                         new NoIntentHandler(),

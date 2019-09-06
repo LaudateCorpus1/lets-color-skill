@@ -16,6 +16,7 @@ import com.amazon.ask.request.Predicates;
 import com.amazon.ask.response.ResponseBuilder;
 import com.hp.letscolor.resource.ColoringPagesResource;
 import com.hp.letscolor.resource.I18nResource;
+import com.hp.letscolor.resource.SkillConnections;
 import com.hp.letscolor.util.UrlUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,18 +27,18 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.hp.letscolor.resource.SkillConnectionsConstants.CONNECTION_AMAZON_PRINT_PDF_1;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.CONTEXT;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.DESCRIPTION;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.IMAGE_TYPE;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.PRINT_IMAGE_REQUEST;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.PRINT_PDF_REQUEST;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.PRINT_WEB_PAGE_REQUEST;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.PROVIDER_ID;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.TITLE;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.TYPE;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.URL;
-import static com.hp.letscolor.resource.SkillConnectionsConstants.VERSION;
+import static com.hp.letscolor.resource.SkillConnections.CONTEXT;
+import static com.hp.letscolor.resource.SkillConnections.DESCRIPTION;
+import static com.hp.letscolor.resource.SkillConnections.IMAGE_TYPE;
+import static com.hp.letscolor.resource.SkillConnections.PRINT_IMAGE;
+import static com.hp.letscolor.resource.SkillConnections.PRINT_IMAGE_REQUEST;
+import static com.hp.letscolor.resource.SkillConnections.PRINT_PDF;
+import static com.hp.letscolor.resource.SkillConnections.PRINT_WEB_PAGE;
+import static com.hp.letscolor.resource.SkillConnections.PROVIDER_ID;
+import static com.hp.letscolor.resource.SkillConnections.TITLE;
+import static com.hp.letscolor.resource.SkillConnections.TYPE;
+import static com.hp.letscolor.resource.SkillConnections.URL;
+import static com.hp.letscolor.resource.SkillConnections.VERSION;
 
 /**
  * Intent Handler for the Custom Intent ColoringPagesIntent
@@ -131,19 +132,20 @@ public class ColoringPagesIntentHandler implements IntentRequestHandler {
         return responseBuilder
                 .withSpeech(speechText)
                 .withSimpleCard(cardTitle, cardText)
-                .addDirective(hpPrinterDirective(name, url, resource, locale))
+                .addDirective(startConnectionDirective(name, url, resource, locale))
                 .build();
     }
 
     /**
-     * Generates the StartConnectionDirective with the payload populated property
+     * Generates the StartConnectionDirective with the input populated property
      */
-    private static StartConnectionDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
+    private static StartConnectionDirective startConnectionDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
         String extension = UrlUtils.getExtensionFromUrl(url);
-        Map<String, Object> payload = generateInput(extension, name, url, resource, locale);
+        SkillConnections.ConnectionTask connectionTask = getConnectionTaskFrom(extension);
+        Map<String, Object> payload = generateInput(connectionTask.getRequestType(), extension, name, url, resource, locale);
 
         return StartConnectionDirective.builder()
-                .withUri(CONNECTION_AMAZON_PRINT_PDF_1)
+                .withUri(connectionTask.getConnectionType())
                 .withToken(COLORING_PAGES_TOKEN)
                 .withInput(payload)
                 .build();
@@ -152,9 +154,8 @@ public class ColoringPagesIntentHandler implements IntentRequestHandler {
     /**
      * @return the input with all the needed attributes for a PRINT Connection type.
      */
-    private static Map<String, Object> generateInput(String extension, String name, String url,
+    private static Map<String, Object> generateInput(String requestType, String extension, String name, String url,
                                                      ColoringPagesResource resource, Locale locale) {
-        String requestType = getRequestType(extension);
         Map<String, Object> input = new HashMap<>();
         input.put(TYPE, requestType);
         input.put(VERSION, "1");
@@ -164,28 +165,21 @@ public class ColoringPagesIntentHandler implements IntentRequestHandler {
         if (requestType.equals(PRINT_IMAGE_REQUEST)) {
             input.put(IMAGE_TYPE, extension.toUpperCase());
         }
-        String providerId = System.getenv(PROVIDER_ID);
-
-        if (providerId != null) {
-            Map<String, Object> context = new HashMap<>();
-            context.put(PROVIDER_ID, providerId);
-            input.put(CONTEXT, context);
-        }
         return input;
     }
 
     /**
-     * Returns the Print Request based on a given exntesion
+     * Returns the Print Request based on a given extension
      */
-    private static String getRequestType(String extension) {
+    private static SkillConnections.ConnectionTask getConnectionTaskFrom(String extension) {
         switch (extension.toUpperCase()) {
-            case "WebPage":
-                return PRINT_WEB_PAGE_REQUEST;
+            case "HTML":
+                return PRINT_WEB_PAGE;
             case "JPG":
             case "JPEG":
-                return PRINT_IMAGE_REQUEST;
+                return PRINT_IMAGE;
             default:
-                return PRINT_PDF_REQUEST;
+                return PRINT_PDF;
         }
     }
 }

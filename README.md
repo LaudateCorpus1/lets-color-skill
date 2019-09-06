@@ -393,21 +393,21 @@ Make sure to:
                  return responseBuilder
                          .withSpeech(speechText)
                          .withSimpleCard(cardTitle, cardText)
-                         .addDirective(hpPrinterDirective(name, url, resource, locale))
+                         .addDirective(startConnectionDirective(name, url, resource, locale))
                          .build();
                  }
              ```
              No big deal here, just getting the name and url of the given category, then get the text and text card from our 
              message resources and then prepare to return to Alexa the message. 
              But this time we're adding a [directive](https://developer.amazon.com/docs/alexa-voice-service/interaction-model.html#interfaces)
-             and calling `hpPrinterDirective` method which is responsible for doing `Skill Connections` magic.
+             and calling `startConnectionDirective` method which is responsible for doing `Skill Connections` magic.
          
         3. #### Skill Connections:<a name="skill-connections"></a>
         
-            The `hpPrinterDirective` method is where the "magic" happens. It's where we're going to ask Alexa to 
+            The `startConnectionDirective` method is where the "magic" happens. It's where we're going to ask Alexa to 
             communicate with HP Printer Skill through [`Skill Connections`](https://developer.amazon.com/docs/custom-skills/skill-connections.html) 
             feature to print the selected coloring page.
-            Basically the `hpPrinterDirective` method returns a Directive, a `StartConnectionDirective` to be more specific.
+            Basically the `startConnectionDirective` method returns a Directive, a `StartConnectionDirective` to be more specific.
             This `StartConnectionDirective` is responsible to tell Alexa that we want to delegate a job to other capable skills,
             in this case delegate a coloring page to HP Printer Skill for printing.
 
@@ -429,40 +429,32 @@ Make sure to:
              and *connection://AMAZON.PrintImage/1* and the request types are respectively `PrintPDFRequest`, 
              `PrintWebPageRequest`, `PrintImageRequest`.
 
-            Let's take a look at the `hpPrinterDirective` method and the payload creation:
+            Let's take a look at the `startConnectionDirective` method and the payload creation:
             ```java
-            private static StartConnectionDirective hpPrinterDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
-                String extension = UrlUtils.getExtensionFromUrl(url);
-                Map<String, Object> payload = generateInput(extension, name, url, resource, locale);
-
-                return StartConnectionDirective.builder()
-                        .withUri(CONNECTION_AMAZON_PRINT_PDF_1)
-                        .withToken(COLORING_PAGES_TOKEN)
-                        .withInput(payload)
-                        .build();.withName(PRINT_NAME)
-            }
-
-            private static Map<String, Object> generateInput(String extension, String name, String url,
-                                                               ColoringPagesResource resource, Locale locale) {
-                String requestType = getRequestType(extension);
-                Map<String, Object> input = new HashMap<>();
-                input.put(TYPE, requestType);
-                input.put(VERSION, "1");
-                input.put(TITLE, name);
-                input.put(DESCRIPTION, String.format(I18nResource.getString("category_of", locale), resource.name()));
-                input.put(URL, url);
-                if (requestType.equals(PRINT_IMAGE_REQUEST)) {
-                    input.put(IMAGE_TYPE, extension.toUpperCase());
+                private static StartConnectionDirective startConnectionDirective(String name, String url, ColoringPagesResource resource, Locale locale) {
+                    String extension = UrlUtils.getExtensionFromUrl(url);
+                    SkillConnections.ConnectionTask connectionTask = getConnectionTaskFrom(extension);
+                    Map<String, Object> payload = generateInput(connectionTask.getRequestType(), extension, name, url, resource, locale);
+            
+                    return StartConnectionDirective.builder()
+                            .withUri(connectionTask.getConnectionType())
+                            .withToken(COLORING_PAGES_TOKEN)
+                            .withInput(payload)
+                            .build();
                 }
-                String providerId = System.getenv(PROVIDER_ID);
-        
-                if (providerId != null) {
-                    Map<String, Object> context = new HashMap<>();
-                    context.put(PROVIDER_ID, providerId);
-                    input.put(CONTEXT, context);
+                private static Map<String, Object> generateInput(String requestType, String extension, String name, String url,
+                                                                 ColoringPagesResource resource, Locale locale) {
+                    Map<String, Object> input = new HashMap<>();
+                    input.put(TYPE, requestType);
+                    input.put(VERSION, "1");
+                    input.put(TITLE, name);
+                    input.put(DESCRIPTION, String.format(I18nResource.getString("category_of", locale), resource.name()));
+                    input.put(URL, url);
+                    if (requestType.equals(PRINT_IMAGE_REQUEST)) {
+                        input.put(IMAGE_TYPE, extension.toUpperCase());
+                    }
+                    return input;
                 }
-                return input;
-            }
             ```
 
             Here's what Alexa should receive from our skill:

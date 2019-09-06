@@ -18,7 +18,7 @@ import java.util.Optional;
 /**
  * Intent Handler for Launch Request
  */
-public class LaunchIntentHandler implements RequestHandler {
+public class LaunchHandler implements RequestHandler {
 
     @Override
     public boolean canHandle(HandlerInput input) {
